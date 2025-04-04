@@ -1,0 +1,431 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="retro-panel">
+        <h1 class="retro-title">>_ ROOM OPERATING: <span class="room-name">{{ room.name }}</span></h1>
+        
+        <div class="retro-grid">
+            <!-- Секция текущих участников -->
+            <div class="retro-section">
+                <div class="section-header">
+                    <i class="fas fa-users"></i>
+                    <h3>Current members</h3>
+                </div>
+                <div class="retro-list" id="members-list">
+                    {% for member in members %}
+                    <div class="retro-list-item">
+                        <span class="user-badge">{{ member.username }}</span>
+                        <form method="post" class="inline-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="user_id" value="{{ member.id }}">
+                            <button type="submit" name="remove_user" class="retro-btn danger">
+                                <i class="fas fa-user-minus"></i> DELETE
+                            </button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Секция добавления участников -->
+            <div class="retro-section">
+                <div class="section-header">
+                    <i class="fas fa-user-plus"></i>
+                    <h3>Add member</h3>
+                </div>
+                <form method="post" id="add-user-form" class="retro-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="username-input" class="retro-label">
+                            <i class="fas fa-user"></i> Name
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="text" class="retro-input" id="username-input" 
+                                   name="username" placeholder="Enter user name" required>
+                            <button type="submit" name="add_user" class="retro-btn primary">
+                                <i class="fas fa-plus"></i> ADD
+                            </button>
+                        </div>
+                        <div id="username-suggestions" class="suggestions-dropdown"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="action-panel">
+            <a href="{% url 'room_detail' room.id %}" class="retro-btn secondary">
+                <i class="fas fa-arrow-center"></i>RETURN 
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Оригинальный скрипт без изменений -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const usernameInput = document.getElementById('username-input');
+    const suggestionsContainer = document.getElementById('username-suggestions');
+    const addUserForm = document.getElementById('add-user-form');
+    const membersList = document.getElementById('members-list');
+    
+    // Поиск пользователей при вводе
+    usernameInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            suggestionsContainer.style.display = 'none';
+            return;
+        }
+        
+        fetch(`/chat/search_users/?q=${query}&room_id={{ room.id }}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.users && data.users.length > 0) {
+                    suggestionsContainer.innerHTML = '';
+                    data.users.forEach(user => {
+                        const suggestion = document.createElement('button');
+                        suggestion.className = 'suggestion-item';
+                        suggestion.type = 'button';
+                        suggestion.textContent = user.full_name;
+                        suggestion.addEventListener('click', function() {
+                            usernameInput.value = user.username;
+                            suggestionsContainer.style.display = 'none';
+                        });
+                        suggestionsContainer.appendChild(suggestion);
+                    });
+                    suggestionsContainer.style.display = 'block';
+                } else {
+                    suggestionsContainer.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching user suggestions:', error);
+                suggestionsContainer.style.display = 'none';
+            });
+    });
+    
+    // Скрытие подсказок при клике вне поля
+    document.addEventListener('click', function(e) {
+        if (e.target !== usernameInput) {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+    
+    // Обработка отправки формы
+    addUserForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const username = usernameInput.value.trim();
+        
+        if (!username) return;
+        
+        fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': this.csrfmiddlewaretoken.value,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `username=${encodeURIComponent(username)}&add_user=1`
+        })
+        .then(response => {
+            if (response.status === 404) {
+                return response.json().then(data => {
+                    throw new Error(data.error);
+                });
+            }
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                return response.text();
+            }
+        })
+        .then(html => {
+            membersList.innerHTML = html;
+            usernameInput.value = '';
+            showTempMessage('Пользователь успешно добавлен', 'success');
+        })
+        .catch(error => {
+            console.error('Error adding user:', error);
+            showTempMessage(error.message, 'danger');
+        });
+    });
+
+    // Функция для показа временных сообщений
+    function showTempMessage(message, type) {
+        const alert = document.createElement('div');
+        alert.className = `retro-alert ${type}`;
+        alert.innerHTML = `
+            <span>${message}</span>
+            <button class="close-btn">&times;</button>
+        `;
+        
+        document.body.appendChild(alert);
+        
+        setTimeout(() => {
+            alert.classList.add('show');
+        }, 10);
+        
+        alert.querySelector('.close-btn').addEventListener('click', () => {
+            alert.remove();
+        });
+        
+        setTimeout(() => {
+            alert.remove();
+        }, 5000);
+    }
+});
+</script>
+
+<style>
+    /* Основные стили ретровейв */
+    .retro-panel {
+        background: rgba(13, 2, 33, 0.8);
+        border: 1px solid #05d9e8;
+        box-shadow: 0 0 20px rgba(5, 217, 232, 0.3);
+        padding: 30px;
+        border-radius: 0;
+        margin-top: 30px;
+    }
+    
+    .retro-title {
+        color: #05d9e8;
+        font-family: 'Courier New', monospace;
+        font-size: 1.8rem;
+        margin-bottom: 30px;
+        text-shadow: 0 0 5px #05d9e8;
+    }
+    
+    .room-name {
+        color: #ff2a6d;
+        text-shadow: 0 0 5px #ff2a6d;
+    }
+    
+    .retro-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+    
+    @media (max-width: 768px) {
+        .retro-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .retro-section {
+        background: rgba(26, 9, 51, 0.5);
+        border: 1px solid #d300c5;
+        padding: 20px;
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(5, 217, 232, 0.3);
+    }
+    
+    .section-header i {
+        color: #05d9e8;
+        margin-right: 10px;
+        font-size: 1.2rem;
+    }
+    
+    .section-header h3 {
+        color: #ff2a6d;
+        margin: 0;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .retro-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .retro-list-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        margin-bottom: 10px;
+        background: rgba(5, 217, 232, 0.1);
+        border-left: 3px solid #05d9e8;
+    }
+    
+    .user-badge {
+        color: white;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+    }
+    
+    .inline-form {
+        margin: 0;
+    }
+    
+    .retro-form {
+        margin-top: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 0;
+    }
+    
+    .retro-label {
+        display: block;
+        color: #05d9e8;
+        margin-bottom: 8px;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .input-wrapper {
+        display: flex;
+    }
+    
+    .retro-input {
+        flex: 1;
+        padding: 10px 15px;
+        background: rgba(5, 217, 232, 0.1);
+        border: 1px solid #05d9e8;
+        color: white;
+        font-family: 'Courier New', monospace;
+        border-radius: 0;
+    }
+    
+    .retro-input:focus {
+        outline: none;
+        box-shadow: 0 0 10px #05d9e8;
+    }
+    
+    .retro-btn {
+        padding: 10px 15px;
+        border: 1px solid;
+        font-family: 'Courier New', monospace;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 0;
+    }
+    
+    .retro-btn i {
+        font-size: 0.9rem;
+    }
+    
+    .retro-btn.primary {
+        background: rgba(5, 217, 232, 0.2);
+        color: #05d9e8;
+        border-color: #05d9e8;
+    }
+    
+    .retro-btn.primary:hover {
+        background: #05d9e8;
+        color: #0d0221;
+        box-shadow: 0 0 15px #05d9e8;
+    }
+    
+    .retro-btn.danger {
+        background: rgba(255, 42, 109, 0.2);
+        color: #ff2a6d;
+        border-color: #ff2a6d;
+    }
+    
+    .retro-btn.danger:hover {
+        background: #ff2a6d;
+        color: white;
+        box-shadow: 0 0 15px #ff2a6d;
+    }
+    
+    .retro-btn.secondary {
+        background: rgba(211, 0, 197, 0.2);
+        color: #d300c5;
+        border-color: #d300c5;
+        text-decoration: none;
+    }
+    
+    .retro-btn.secondary:hover {
+        background: #d300c5;
+        color: white;
+        box-shadow: 0 0 15px #d300c5;
+    }
+    
+    .suggestions-dropdown {
+        position: absolute;
+        width: calc(100% - 2px);
+        max-height: 200px;
+        overflow-y: auto;
+        background: rgba(13, 2, 33, 0.95);
+        border: 1px solid #05d9e8;
+        border-top: none;
+        z-index: 100;
+        display: none;
+    }
+    
+    .suggestion-item {
+        display: block;
+        width: 100%;
+        padding: 10px 15px;
+        background: none;
+        border: none;
+        color: white;
+        text-align: left;
+        font-family: 'Courier New', monospace;
+        cursor: pointer;
+    }
+    
+    .suggestion-item:hover {
+        background: rgba(255, 42, 109, 0.2);
+    }
+    
+    .action-panel {
+        margin-top: 30px;
+        text-align: center;
+    }
+    
+    .retro-alert {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 15px 25px;
+        font-family: 'Courier New', monospace;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .retro-alert.show {
+        opacity: 1;
+    }
+    
+    .retro-alert.success {
+        background: rgba(5, 217, 232, 0.2);
+        border: 1px solid #05d9e8;
+        color: #05d9e8;
+        box-shadow: 0 0 15px rgba(5, 217, 232, 0.5);
+    }
+    
+    .retro-alert.danger {
+        background: rgba(255, 42, 109, 0.2);
+        border: 1px solid #ff2a6d;
+        color: #ff2a6d;
+        box-shadow: 0 0 15px rgba(255, 42, 109, 0.5);
+    }
+    
+    .close-btn {
+        background: none;
+        border: none;
+        color: inherit;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+    }
+</style>
+{% endblock %}
