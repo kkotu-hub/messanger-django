@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+<h1 class="neon-title" style="color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue);">
+    >_ LOGIN
+</h1>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card" style="background-color: var(--deep-purple); border: 1px solid var(--neon-blue);">
+                <div class="card-header" style="border-bottom: 1px solid var(--neon-purple);">
+                    <h4 class="mb-0" style="color: var(--neon-blue); font-family: 'Press Start 2P', cursive;">
+                        >_ SYSTEM ACCESS
+                    </h4>
+                </div>
+                <div class="card-body" style="background-color: rgba(5, 217, 232, 0.05);">
+                    <form method="post" class="mt-3">
+                        {% csrf_token %}
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            {{ form|crispy }}
+                        </div>
+                        <button type="submit" class="btn btn-neon w-100 mt-3">
+                            <i class="fas fa-sign-in-alt"></i> ACCESS SYSTEM
+                        </button>
+                    </form>
+                    <div class="mt-3 text-center" style="color: var(--neon-blue); font-family: 'Roboto Mono', monospace;">
+                        <a href="{% url 'register' %}" style="color: var(--neon-pink); text-decoration: none;">
+                            >> NO ACCOUNT? REGISTER NOW
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Стилизация формы */
+    .form-control {
+        background-color: rgba(13, 2, 33, 0.7);
+        border: 1px solid var(--neon-blue);
+        color: white;
+        font-family: 'Roboto Mono', monospace;
+        margin-bottom: 15px;
+    }
+
+    .form-control:focus {
+        box-shadow: 0 0 10px var(--neon-blue);
+        border-color: var(--neon-pink);
+    }
+
+    .form-group label {
+        color: var(--neon-purple);
+        font-family: 'Roboto Mono', monospace;
+        text-shadow: 0 0 5px var(--neon-purple);
+    }
+
+    .btn-neon {
+        background-color: transparent;
+        border: 1px solid var(--neon-blue);
+        color: var(--neon-blue);
+        text-shadow: 0 0 5px var(--neon-blue);
+        transition: all 0.3s;
+    }
+
+    .btn-neon:hover {
+        background-color: var(--neon-blue);
+        color: var(--deep-purple);
+        box-shadow: 0 0 15px var(--neon-blue);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Добавляем placeholder'ы к полям ввода
+    const inputs = document.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+        if (input.id.includes('username')) {
+            input.placeholder = '>> ENTER USERNAME';
+        } else if (input.id.includes('password')) {
+            input.placeholder = '>> ENTER PASSWORD';
+        }
+        
+        input.style.padding = '10px';
+        input.style.borderRadius = '0';
+    });
+});
+</script>
+{% endblock %}

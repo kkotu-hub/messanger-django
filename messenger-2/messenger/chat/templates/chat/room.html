@@ -1,0 +1,395 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="neon-title" style="color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue);">
+            >_ {{ room.name|upper }}
+        </h1>
+        {% if room.created_by == request.user %}
+        <div class="btn-group">
+            <a href="{% url 'manage_room' room.id %}" class="btn btn-neon">
+                <i class="fas fa-cog"></i> MANAGE ROOM
+            </a>
+            <button type="button" class="btn btn-neon-pink" id="deleteRoomBtn">
+                <i class="fas fa-trash"></i> DELETE
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    
+            <!-- Кастомное модальное окно (не Bootstrap) -->
+    <div id="customModal" class="custom-modal">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h3 style="color: var(--neon-pink); margin: 0;">
+                    <i class="fas fa-exclamation-triangle"></i> CONFIRM DELETION
+                </h3>
+                <span class="custom-close-btn">&times;</span>
+            </div>
+            <div class="custom-modal-body">
+                <p>Are you sure you want to delete the room <strong>"{{ room.name }}"</strong>?</p>
+                <p style="color: var(--neon-pink);">This action cannot be undone!</p>
+            </div>
+            <div class="custom-modal-footer">
+                <button class="btn btn-neon" id="cancelDeleteBtn">
+                    <i class="fas fa-times"></i> CANCEL
+                </button>
+                <form action="{% url 'delete_room' room.id %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-neon-pink">
+                        <i class="fas fa-trash"></i> DELETE ROOM
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    
+    
+    <!-- Скрытый контейнер с room.id и другими мета-данными -->
+    <div id="chat-data" 
+         data-room-id="{{ room.id }}"
+         data-username="{{ request.user.username }}"
+         data-is-creator="{% if room.created_by == request.user %}true{% else %}false{% endif %}"
+         style="display: none;"></div>
+    
+    <!-- Контейнер для сообщений -->
+    <div id="chat-messages" class="messages" style="height: 500px; overflow-y: auto; border: 1px solid var(--neon-purple); padding: 15px; margin-bottom: 20px; background-color: rgba(5, 217, 232, 0.05);">
+        <!-- Сообщения будут загружаться динамически -->
+    </div>
+
+    <!-- Форма отправки сообщений -->
+    <form id="chat-form" method="post" class="mt-3">
+        {% csrf_token %}
+        <div class="input-group">
+            <input type="text" class="form-control" id="id_content" name="content" required style="background-color: rgba(13, 2, 33, 0.7); border: 1px solid var(--neon-blue); color: white; font-family: 'Roboto Mono', monospace;" placeholder="TYPE YOUR MESSAGE HERE...">
+            <button type="submit" class="btn btn-neon">
+                <i class="fas fa-paper-plane"></i> SEND
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .message {
+        margin-bottom: 15px;
+        padding: 10px;
+        border-radius: 0;
+        font-family: 'Roboto Mono', monospace;
+        background-color: rgba(13, 2, 33, 0.7);
+        border-left: 3px solid;
+    }
+    
+    .sent {
+        border-left-color: var(--neon-pink);
+        margin-left: 20%;
+    }
+    
+    .received {
+        border-left-color: var(--neon-blue);
+        margin-right: 20%;
+    }
+    
+    .system {
+        border-left-color: var(--neon-purple);
+        text-align: center;
+        margin: 20px 10%;
+        font-size: 0.9em;
+    }
+    
+    .message-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        font-size: 0.8em;
+    }
+    
+    .message-content {
+        word-wrap: break-word;
+    }
+    
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    #id_content:focus {
+        box-shadow: 0 0 10px var(--neon-blue);
+        animation: blink 2s infinite;
+    }
+    
+    #chat-messages::-webkit-scrollbar {
+        width: 5px;
+    }
+    
+    #chat-messages::-webkit-scrollbar-track {
+        background: rgba(5, 217, 232, 0.1);
+    }
+    
+    #chat-messages::-webkit-scrollbar-thumb {
+        background: var(--neon-purple);
+    }
+    
+      /* Стили для кастомного модального окна */
+      .custom-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+    }
+    
+    .custom-modal-content {
+        background-color: #0d0221;
+        border: 2px solid var(--neon-pink);
+        box-shadow: 0 0 20px var(--neon-pink);
+        margin: 10% auto;
+        padding: 20px;
+        width: 80%;
+        max-width: 500px;
+        animation: modalFadeIn 0.3s;
+    }
+    
+    @keyframes modalFadeIn {
+        from {opacity: 0; transform: translateY(-50px);}
+        to {opacity: 1; transform: translateY(0);}
+    }
+    
+    .custom-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--neon-purple);
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .custom-close-btn {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .custom-close-btn:hover {
+        color: var(--neon-pink);
+    }
+    
+    .custom-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        border-top: 1px solid var(--neon-purple);
+        padding-top: 15px;
+        margin-top: 15px;
+    }
+
+
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatData = document.getElementById('chat-data');
+    const roomId = chatData.dataset.roomId;
+    const currentUser = chatData.dataset.username;
+    const isCreator = chatData.dataset.isCreator === 'true';
+    
+    let chatSocket = null;
+    const reconnectDelay = 3000;
+    const messageIds = new Set();
+    
+    function connectWebSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const wsUrl = protocol + window.location.host + '/ws/chat/' + roomId + '/';
+        
+        chatSocket = new WebSocket(wsUrl);
+        
+        chatSocket.onopen = function() {
+            console.log('>> WebSocket connection established');
+            loadInitialMessages();
+        };
+        
+        chatSocket.onmessage = function(e) {
+            try {
+                const data = JSON.parse(e.data);
+                
+                if (data.error) {
+                    console.error('>> Server error:', data.error);
+                    showSystemMessage(`ERROR: ${data.error}`, 'error');
+                    return;
+                }
+                
+                if (data.type === 'history' || data.type === 'message') {
+                    addMessage(data);
+                }
+                
+                if (data.type === 'system') {
+                    showSystemMessage(data.message, 'system');
+                }
+            } catch (err) {
+                console.error('>> Error parsing message:', err);
+                showSystemMessage('SYSTEM: Message parse error', 'error');
+            }
+        };
+        
+        chatSocket.onclose = function(e) {
+            console.log('>> WebSocket disconnected:', e.reason);
+            showSystemMessage('SYSTEM: Connection lost. Reconnecting...', 'warning');
+            if (e.code !== 1000) {
+                setTimeout(connectWebSocket, reconnectDelay);
+            }
+        };
+        
+        chatSocket.onerror = function(err) {
+            console.error('>> WebSocket error:', err);
+            showSystemMessage('SYSTEM: Connection error', 'error');
+        };
+    }
+    
+    function loadInitialMessages() {
+        showSystemMessage('SYSTEM: Loading message history...', 'info');
+        
+        fetch(`/chat/api/messages/?room_id=${roomId}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(messages => {
+                messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                if (messages.length > 0) {
+                    showSystemMessage(`SYSTEM: Loaded ${messages.length} messages`, 'success');
+                } else {
+                    showSystemMessage('SYSTEM: No messages in this room yet', 'info');
+                }
+                messages.forEach(msg => addMessage(msg));
+            })
+            .catch(err => {
+                console.error('>> Error loading messages:', err);
+                showSystemMessage('SYSTEM: Failed to load messages', 'error');
+            });
+    }
+    
+    function addMessage(data) {
+        if (messageIds.has(data.message_id)) return;
+        
+        const messagesContainer = document.getElementById('chat-messages');
+        const messageElement = document.createElement('div');
+        
+        const isCurrentUser = data.sender === currentUser;
+        messageElement.className = `message ${isCurrentUser ? 'sent' : 'received'}`;
+        messageElement.dataset.messageId = data.message_id;
+        
+        const timestamp = new Date(data.timestamp);
+        const timeStr = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        messageElement.innerHTML = `
+            <div class="message-header">
+                <span class="sender" style="color: ${isCurrentUser ? 'var(--neon-pink)' : 'var(--neon-blue)'}">
+                    ${isCurrentUser ? 'YOU' : data.sender.toUpperCase()}
+                </span>
+                <span class="timestamp" style="color: var(--neon-purple)">[${timeStr}]</span>
+            </div>
+            <div class="message-content">${data.content}</div>
+        `;
+        
+        messagesContainer.appendChild(messageElement);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        messageIds.add(data.message_id);
+    }
+    
+    function showSystemMessage(message, type = 'system') {
+        const messagesContainer = document.getElementById('chat-messages');
+        const messageElement = document.createElement('div');
+        
+        let color;
+        switch(type) {
+            case 'error': color = 'var(--neon-pink)'; break;
+            case 'warning': color = 'var(--neon-purple)'; break;
+            case 'success': color = 'var(--neon-blue)'; break;
+            default: color = '#aaa';
+        }
+        
+        messageElement.className = 'message system';
+        messageElement.innerHTML = `
+            <div style="color: ${color}; font-family: 'Roboto Mono', monospace;">
+                >> ${message}
+            </div>
+        `;
+        
+        messagesContainer.appendChild(messageElement);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    document.getElementById('chat-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const messageInput = document.getElementById('id_content');
+        const message = messageInput.value.trim();
+        
+        if (!message) return;
+        
+        if (!chatSocket || chatSocket.readyState !== WebSocket.OPEN) {
+            showSystemMessage('ERROR: Connection not ready. Please wait...', 'error');
+            return;
+        }
+        
+        try {
+            chatSocket.send(JSON.stringify({
+                'content': message
+            }));
+            messageInput.value = '';
+        } catch (err) {
+            console.error('>> Error sending message:', err);
+            showSystemMessage('ERROR: Failed to send message', 'error');
+        }
+    });
+    
+    connectWebSocket();
+    
+    let dots = 0;
+    const loadingInterval = setInterval(() => {
+        const status = document.querySelector('.connection-status');
+        if (status) {
+            dots = (dots + 1) % 4;
+            status.textContent = 'CONNECTING' + '.'.repeat(dots);
+        }
+    }, 500);
+    
+    setTimeout(() => clearInterval(loadingInterval), 5000);
+
+    const modal = document.getElementById("customModal");
+    const deleteBtn = document.getElementById("deleteRoomBtn");
+    const cancelBtn = document.getElementById("cancelDeleteBtn");
+    const closeBtn = document.querySelector(".custom-close-btn");
+    
+    // Открытие модального окна
+    if (deleteBtn) {
+        deleteBtn.onclick = function() {
+            modal.style.display = "block";
+            document.body.style.overflow = "hidden"; // Блокируем прокрутку страницы
+        }
+    }
+    
+    // Закрытие модального окна
+    function closeModal() {
+        modal.style.display = "none";
+        document.body.style.overflow = "auto"; // Восстанавливаем прокрутку
+    }
+    
+    if (closeBtn) closeBtn.onclick = closeModal;
+    if (cancelBtn) cancelBtn.onclick = closeModal;
+    
+    // Закрытие при клике вне модального окна
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+    
+});
+</script>
+{% endblock %}

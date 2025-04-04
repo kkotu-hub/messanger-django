@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="retro-profile-container">
+    <div class="retro-profile-card">
+        <div class="retro-profile-header">
+            <h1 class="neon-title">>_ USER PROFILE: {{ request.user.username|upper }}</h1>
+            <div class="retro-line"></div>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data" class="retro-profile-form">
+            {% csrf_token %}
+            
+            <div class="retro-avatar-container">
+                <div class="retro-avatar-wrapper">
+                    <img src="{{ profile.get_avatar_url }}" 
+                         class="retro-avatar" 
+                         alt="AVATAR"
+                         id="avatar-preview">
+                    <label for="id_avatar" class="retro-avatar-upload">
+                        <i class="fas fa-camera-retro"></i>
+                    </label>
+                    <input type="file" name="avatar" id="id_avatar" accept="image/*">
+                </div>
+            </div>
+            
+            <div class="retro-form-fields">
+                {% for field in form %}
+                    {% if field.name != 'avatar' and field.name != 'clear' %}
+                        <div class="retro-form-group">
+                            <label for="{{ field.id_for_label }}" class="retro-label">
+                                <i class="fas fa-{% cycle 'user' 'envelope' 'globe' %}"></i> 
+                                {{ field.label|upper }}
+                            </label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="retro-error">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            
+            <button type="submit" class="retro-btn retro-btn-primary">
+                <i class="fas fa-save"></i> SAVE PROFILE
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Все стили остаются такими же, как в предыдущем варианте */
+    .retro-profile-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 20px;
+    }
+    
+    .retro-profile-card {
+        width: 100%;
+        max-width: 600px;
+        background: rgba(13, 2, 33, 0.8);
+        border: 1px solid var(--neon-purple);
+        box-shadow: 0 0 20px rgba(211, 0, 197, 0.5);
+        padding: 30px;
+        font-family: 'Roboto Mono', monospace;
+    }
+    
+    .retro-profile-header {
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .retro-line {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+        margin: 15px 0;
+    }
+    
+    .retro-avatar-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 30px;
+    }
+    
+    .retro-avatar-wrapper {
+        position: relative;
+        width: 150px;
+        height: 150px;
+    }
+    
+    .retro-avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--neon-blue);
+        box-shadow: 0 0 15px var(--neon-blue);
+        transition: all 0.3s;
+    }
+    
+    .retro-avatar:hover {
+        box-shadow: 0 0 25px var(--neon-pink);
+        border-color: var(--neon-pink);
+    }
+    
+    .retro-avatar-upload {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        background: var(--deep-purple);
+        border: 1px solid var(--neon-blue);
+        color: var(--neon-blue);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .retro-avatar-upload:hover {
+        background: var(--neon-blue);
+        color: var(--dark-blue);
+        transform: scale(1.1);
+    }
+    
+    #id_avatar {
+        display: none;
+    }
+    
+    .retro-form-fields {
+        margin-bottom: 30px;
+    }
+    
+    .retro-form-group {
+        margin-bottom: 20px;
+    }
+    
+    .retro-label {
+        display: block;
+        color: var(--neon-blue);
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .retro-form-group input,
+    .retro-form-group textarea,
+    .retro-form-group select {
+        width: 100%;
+        padding: 12px 15px;
+        background: rgba(5, 217, 232, 0.1);
+        border: 1px solid var(--neon-blue);
+        color: white;
+        font-family: 'Roboto Mono', monospace;
+        outline: none;
+    }
+    
+    .retro-form-group input:focus,
+    .retro-form-group textarea:focus,
+    .retro-form-group select:focus {
+        box-shadow: 0 0 10px var(--neon-blue);
+    }
+    
+    .retro-error {
+        color: var(--neon-pink);
+        font-size: 0.8rem;
+        margin-top: 5px;
+        text-shadow: 0 0 3px var(--neon-pink);
+    }
+    
+    .retro-btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        font-family: 'Roboto Mono', monospace;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .retro-btn-primary {
+        background: rgba(255, 42, 109, 0.2);
+        color: var(--neon-pink);
+        border: 1px solid var(--neon-pink);
+    }
+    
+    .retro-btn-primary:hover {
+        background: var(--neon-pink);
+        color: white;
+        box-shadow: 0 0 15px var(--neon-pink);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка загрузки аватара
+    const avatarInput = document.getElementById('id_avatar');
+    const avatarPreview = document.getElementById('avatar-preview');
+    
+    if (avatarInput && avatarPreview) {
+        avatarInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarPreview.src = e.target.result;
+                    avatarPreview.style.borderColor = 'var(--neon-pink)';
+                    setTimeout(() => {
+                        avatarPreview.style.borderColor = 'var(--neon-blue)';
+                    }, 1000);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

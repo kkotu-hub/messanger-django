@@ -1,0 +1,58 @@
+{% for member in members %}
+<li class="retro-member-item">
+    <span class="retro-member-name">{{ member.username }}</span>
+    <form method="post" class="retro-member-form">
+        {% csrf_token %}
+        <input type="hidden" name="user_id" value="{{ member.id }}">
+        <button type="submit" name="remove_user" class="retro-btn retro-btn-danger">
+            <i class="fas fa-user-minus"></i> DELETE
+        </button>
+    </form>
+</li>
+{% endfor %}
+
+<style>
+    .retro-member-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        margin-bottom: 10px;
+        background: rgba(5, 217, 232, 0.1);
+        border-left: 3px solid #05d9e8;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .retro-member-name {
+        color: white;
+        font-weight: bold;
+    }
+    
+    .retro-member-form {
+        margin: 0;
+    }
+    
+    .retro-btn {
+        padding: 6px 12px;
+        border: none;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .retro-btn-danger {
+        background: rgba(255, 42, 109, 0.2);
+        color: #ff2a6d;
+        border: 1px solid #ff2a6d;
+    }
+    
+    .retro-btn-danger:hover {
+        background: #ff2a6d;
+        color: white;
+        box-shadow: 0 0 10px #ff2a6d;
+    }
+</style>

@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="retro-container">
+    <div class="retro-create-chat">
+        <div class="retro-header">
+            <h1 class="neon-title">>_ CREATE CHAT</h1>
+            <div class="retro-line"></div>
+        </div>
+        
+        <form method="post" class="retro-form">
+            {% csrf_token %}
+            
+            <div class="retro-form-group">
+                <label for="room_name" class="retro-label">
+                    <i class="fas fa-comment"></i> CHAT NAME
+                </label>
+                <input type="text" id="room_name" name="room_name" 
+                       class="retro-input" placeholder="Enter name..." required>
+            </div>
+            
+            <button type="submit" class="retro-btn retro-btn-primary">
+                <i class="fas fa-plus-circle"></i> CREATE
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .retro-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 20px;
+    }
+    
+    .retro-create-chat {
+        width: 100%;
+        max-width: 500px;
+        background: rgba(13, 2, 33, 0.8);
+        border: 1px solid #05d9e8;
+        box-shadow: 0 0 20px rgba(5, 217, 232, 0.3);
+        padding: 30px;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .retro-header {
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .neon-title {
+        color: #ff2a6d;
+        text-shadow: 0 0 5px #ff2a6d;
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+    
+    .retro-line {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #05d9e8, transparent);
+        margin: 15px 0;
+    }
+    
+    .retro-form {
+        margin-top: 30px;
+    }
+    
+    .retro-form-group {
+        margin-bottom: 25px;
+    }
+    
+    .retro-label {
+        display: block;
+        color: #05d9e8;
+        margin-bottom: 10px;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    
+    .retro-input {
+        width: 100%;
+        padding: 12px 15px;
+        background: rgba(5, 217, 232, 0.1);
+        border: 1px solid #05d9e8;
+        color: white;
+        font-family: 'Courier New', monospace;
+        outline: none;
+    }
+    
+    .retro-input:focus {
+        box-shadow: 0 0 10px #05d9e8;
+    }
+    
+    .retro-btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .retro-btn-primary {
+        background: rgba(255, 42, 109, 0.2);
+        color: #ff2a6d;
+        border: 1px solid #ff2a6d;
+    }
+    
+    .retro-btn-primary:hover {
+        background: #ff2a6d;
+        color: white;
+        box-shadow: 0 0 15px #ff2a6d;
+    }
+    
+    /* Анимация для кнопки */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .retro-btn:hover {
+        animation: pulse 0.5s ease-in-out;
+    }
+</style>
+{% endblock %}
