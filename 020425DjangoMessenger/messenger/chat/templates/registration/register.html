@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="retro-container">
+    <div class="retro-login-box">
+        <div class="retro-header">
+            <h1>>_ REGISTRATION</h1>
+            <div class="retro-line"></div>
+        </div>
+        
+        <div class="retro-body">
+            <form method="post" class="retro-form">
+                {% csrf_token %}
+                
+                <!-- Поле username -->
+                <div class="retro-form-group">
+                    <label for="id_username">NAME</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="retro-error">{{ form.username.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Поле email -->
+                <div class="retro-form-group">
+                    <label for="id_email">EMAIL</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="retro-error">{{ form.email.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Поле password1 -->
+                <div class="retro-form-group">
+                    <label for="id_password1">PASSWORD</label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                        <div class="retro-error">{{ form.password1.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Поле password2 -->
+                <div class="retro-form-group">
+                    <label for="id_password2">CONFIRM PASSWORD</label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                        <div class="retro-error">{{ form.password2.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <button type="submit" class="retro-btn retro-btn-primary">
+                    <i class="fas fa-user-plus"></i> REGISTER ACCOUNT
+                </button>
+            </form>
+            
+            <div class="retro-footer">
+                <div class="retro-line"></div>
+                <p>ALREADY HAVE AN ACCOUNT? <a href="{% url 'login' %}" class="retro-link">LOGIN</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .retro-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #0d0221;
+        background-image: 
+            linear-gradient(
+                to bottom,
+                rgba(5, 217, 232, 0.1) 1px,
+                transparent 1px
+            ),
+            linear-gradient(
+                to right,
+                rgba(255, 42, 109, 0.1) 1px,
+                transparent 1px
+            );
+        background-size: 20px 20px;
+        padding: 20px;
+    }
+    
+    .retro-login-box {
+        width: 100%;
+        max-width: 500px;
+        background: rgba(13, 2, 33, 0.8);
+        border: 1px solid #05d9e8;
+        box-shadow: 0 0 20px rgba(5, 217, 232, 0.3);
+        padding: 30px;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .retro-header {
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .retro-header h1 {
+        color: #ff2a6d;
+        text-shadow: 0 0 5px #ff2a6d;
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+    }
+    
+    .retro-line {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #05d9e8, transparent);
+        margin: 15px 0;
+    }
+    
+    .retro-form-group {
+        margin-bottom: 20px;
+    }
+    
+    .retro-form-group label {
+        color: #05d9e8;
+        font-weight: bold;
+        display: block;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+    }
+    
+    .retro-form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        background: rgba(5, 217, 232, 0.1);
+        border: 1px solid #05d9e8;
+        color: white;
+        font-family: 'Courier New', monospace;
+        outline: none;
+    }
+    
+    .retro-form-group input:focus {
+        box-shadow: 0 0 10px #05d9e8;
+    }
+    
+    .retro-error {
+        color: #ff2a6d;
+        font-size: 0.8rem;
+        margin-top: 5px;
+        text-shadow: 0 0 3px #ff2a6d;
+    }
+    
+    .retro-btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .retro-btn-primary {
+        background: rgba(255, 42, 109, 0.2);
+        color: #ff2a6d;
+        border: 1px solid #ff2a6d;
+    }
+    
+    .retro-btn-primary:hover {
+        background: #ff2a6d;
+        color: white;
+        box-shadow: 0 0 15px #ff2a6d;
+    }
+    
+    .retro-footer {
+        margin-top: 30px;
+        text-align: center;
+    }
+    
+    .retro-footer p {
+        color: #05d9e8;
+        margin-top: 15px;
+    }
+    
+    .retro-link {
+        color: #ff2a6d;
+        text-decoration: none;
+    }
+    
+    .retro-link:hover {
+        text-decoration: underline;
+        text-shadow: 0 0 5px #ff2a6d;
+    }
+</style>
+{% endblock %}

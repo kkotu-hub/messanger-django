@@ -1,0 +1,468 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="neon-title" style="color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue);">
+            >_ MY CHAT ROOMS
+        </h1>
+    </div>
+
+    <!-- Search and Create Button Row -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="search-container" style="flex-grow: 1; margin-right: 20px;">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="roomSearch" class="search-input" placeholder="SEARCH CASSETTES..." onkeyup="searchRooms()">
+            <div class="search-line"></div>
+        </div>
+        <a href="{% url 'create_room' %}" class="btn btn-neon" style="white-space: nowrap;">
+            <i class="fas fa-plus"></i> CREATE ROOM
+        </a>
+    </div>
+
+    <div class="cassette-grid" id="roomContainer">
+        {% for room in rooms %}
+        <div class="cassette-wrapper" data-roomname="{{ room.name|lower }}">
+            <div class="cassette-box">
+                <!-- Передняя грань -->
+                <div class="cassette-face cassette-front">
+                    <div class="cassette-brand">CHAT-90</div>
+                    
+                    <div class="cassette-label">
+                        <div class="label-tape"></div>
+                        <div class="label-content">
+                            <span class="side-indicator">{{ room.name|upper }}</span>
+                            <span class="cassette-id">ID: {{ room.id }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="cassette-reels">
+                        <div class="reel left-reel">
+                            <div class="reel-core"></div>
+                        </div>
+                        <div class="reel right-reel">
+                            <div class="reel-core"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="cassette-details">
+                        <div class="screw top-left"></div>
+                        <div class="screw top-right"></div>
+                        <div class="screw bottom-left"></div>
+                        <div class="screw bottom-right"></div>
+                    </div>
+                    
+                    {% if room.created_by == request.user %}
+                    <div class="creator-badge">★ CREATOR</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Боковая грань -->
+                <div class="cassette-face cassette-side"></div>
+                
+                <!-- Верхняя грань -->
+                <div class="cassette-face cassette-top"></div>
+            </div>
+            
+            <a href="{% url 'room_detail' room.id %}" class="btn btn-neon cassette-button">
+                <i class="fas fa-play"></i>
+                <span>INSERT</span>
+            </a>
+        </div>
+        {% empty %}
+        <div class="empty-cassette">
+            <div class="eject-icon">⏏</div>
+            <h3>>_ NO TAPES FOUND</h3>
+            <p>Insert your first chat cassette</p>
+            <a href="{% url 'create_room' %}" class="btn btn-neon-pink mt-3">
+                <i class="fas fa-plus"></i> NEW CASSETTE
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    :root {
+        --cassette-pink: #ff2d6b;
+        --cassette-dark-pink: #d40042;
+        --cassette-metal: #5a5a5a;
+        --cassette-label: #f8f8f8;
+        --cassette-side: #b3003a;
+        --cassette-top: #8a002e;
+    }
+    
+    /* Search Bar Styles */
+    .search-container {
+        position: relative;
+        width: 100%;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 12px 20px 12px 40px;
+        background: rgba(0, 0, 0, 0.2);
+        border: none;
+        border-radius: 4px;
+        color: white;
+        font-family: 'Courier New', monospace;
+        font-size: 1rem;
+        outline: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 0 1px rgba(255, 45, 107, 0.3);
+    }
+    
+    .search-input:focus {
+        box-shadow: 0 0 0 2px var(--cassette-pink);
+        background: rgba(0, 0, 0, 0.3);
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--cassette-pink);
+        z-index: 2;
+    }
+    
+    .search-line {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: var(--cassette-pink);
+        transition: width 0.3s ease;
+    }
+    
+    .search-input:focus ~ .search-line {
+        width: 100%;
+    }
+    
+    .cassette-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 40px;
+        margin-top: 30px;
+    }
+    
+    .cassette-wrapper {
+        position: relative;
+        height: 200px;
+        perspective: 1000px;
+        transition: all 0.3s ease;
+    }
+    
+    .cassette-box {
+        position: relative;
+        width: 100%;
+        height: 160px;
+        transform-style: preserve-3d;
+        transform: rotateX(10deg) rotateY(-15deg);
+        transition: transform 0.5s ease;
+    }
+    
+    .cassette-wrapper:hover .cassette-box {
+        transform: rotateX(10deg) rotateY(-20deg);
+    }
+    
+    .cassette-face {
+        position: absolute;
+        backface-visibility: hidden;
+        box-sizing: border-box;
+    }
+    
+    .cassette-front {
+        width: 250px;
+        height: 160px;
+        background: linear-gradient(145deg, var(--cassette-pink), var(--cassette-dark-pink));
+        padding: 15px;
+        box-shadow: 
+            5px 5px 15px rgba(210, 0, 66, 0.3),
+            inset 0 0 20px rgba(0, 0, 0, 0.4);
+        transform: translateZ(20px);
+    }
+    
+    .cassette-side {
+        width: 30px;
+        height: 160px;
+        background: var(--cassette-side);
+        left: 214.1px;
+        transform: rotateY(90deg) translateZ(20px) translateX(0);
+        box-shadow: inset -5px 0 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .cassette-top {
+        width: 250px;
+        height: 30px;
+        background: var(--cassette-top);
+        top: -30px;
+        transform: rotateX(90deg) translateZ(0) translateY(0);
+        box-shadow: inset 0 -5px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .cassette-brand {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.8);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+    
+    .cassette-label {
+        background: var(--cassette-label);
+        height: 80px;
+        border-radius: 3px;
+        padding: 10px;
+        box-shadow: 
+            inset 0 0 8px rgba(0, 0, 0, 0.1),
+            0 1px 0 rgba(255, 255, 255, 0.8);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .label-tape {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(to right, var(--cassette-pink), #ff8fab, var(--cassette-pink));
+    }
+    
+    .label-content {
+        position: relative;
+        z-index: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .side-indicator {
+        font-size: 0.7rem;
+        color: var(--cassette-pink);
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    
+    .cassette-id {
+        font-family: 'Courier New', monospace;
+        color: #777;
+        font-size: 0.75rem;
+        margin-top: auto;
+    }
+    
+    .cassette-reels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+    }
+    
+    .reel {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #444 30%, #222 100%);
+        position: relative;
+        box-shadow: 
+            inset 0 0 15px rgba(0, 0, 0, 0.7),
+            0 3px 5px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .reel-core {
+        width: 20px;
+        height: 20px;
+        background: #aaa;
+        border-radius: 50%;
+        box-shadow: 
+            inset 0 0 8px rgba(0, 0, 0, 0.6),
+            0 0 5px rgba(255, 255, 255, 0.4);
+    }
+    
+    .left-reel {
+        animation: spin-left 6s linear infinite;
+    }
+    
+    .right-reel {
+        animation: spin-right 6s linear infinite;
+    }
+    
+    .cassette-details {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+    }
+    
+    .screw {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: var(--cassette-metal);
+        border-radius: 50%;
+        box-shadow: 
+            inset 0 0 5px rgba(0, 0, 0, 0.8),
+            0 0 3px rgba(255, 255, 255, 0.3);
+    }
+    
+    .screw.top-left { top: 5px; left: 5px; }
+    .screw.top-right { top: 5px; right: 5px; }
+    .screw.bottom-left { bottom: 5px; left: 5px; }
+    .screw.bottom-right { bottom: 5px; right: 5px; }
+    
+    .creator-badge {
+        position: absolute;
+        top: 30px;
+        right: -5px;
+        background: white;
+        color: var(--cassette-pink);
+        padding: 3px 12px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        border-radius: 12px 0 0 12px;
+        box-shadow: 
+            -3px 3px 8px rgba(0, 0, 0, 0.3),
+            0 0 0 2px rgba(255, 45, 107, 0.3);
+        border: 1px dashed var(--cassette-pink);
+        z-index: 3;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .cassette-button {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 15px;
+        z-index: 3;
+        text-decoration: none;
+    }
+    
+    .empty-cassette {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 40px 20px;
+        background: rgba(255, 45, 107, 0.05);
+        border: 2px dashed var(--cassette-pink);
+        border-radius: 8px;
+    }
+    
+    .eject-icon {
+        font-size: 3rem;
+        color: var(--cassette-pink);
+        margin-bottom: 15px;
+        animation: bounce 2s infinite;
+    }
+    
+    .empty-cassette h3 {
+        color: var(--cassette-pink);
+        margin: 20px 0;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+    }
+    
+    .empty-cassette p {
+        color: #888;
+        font-family: 'Courier New', monospace;
+    }
+    
+    /* Hidden room style */
+    .cassette-wrapper.hidden {
+        opacity: 0;
+        transform: scale(0.9);
+        height: 0;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+    
+    @keyframes spin-left {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(-360deg); }
+    }
+    
+    @keyframes spin-right {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    @media (max-width: 768px) {
+        .cassette-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .cassette-box {
+            transform: rotateX(10deg) rotateY(-5deg);
+        }
+        
+        /* Stack search and button on mobile */
+        .d-flex.justify-content-between.align-items-center.mb-4 {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .search-container {
+            width: 100%;
+            margin-right: 0 !important;
+        }
+        
+        .btn-neon {
+            width: 100%;
+        }
+    }
+</style>
+
+<script>
+    function searchRooms() {
+        const input = document.getElementById('roomSearch');
+        const filter = input.value.toLowerCase();
+        const rooms = document.querySelectorAll('.cassette-wrapper');
+        
+        rooms.forEach(room => {
+            const roomName = room.getAttribute('data-roomname');
+            if (roomName.includes(filter)) {
+                room.classList.remove('hidden');
+            } else {
+                room.classList.add('hidden');
+            }
+        });
+        
+        // Check if all rooms are hidden
+        const visibleRooms = document.querySelectorAll('.cassette-wrapper:not(.hidden)');
+        const emptyState = document.querySelector('.empty-cassette');
+        
+        if (visibleRooms.length === 0 && rooms.length > 0) {
+            if (!emptyState) {
+                const container = document.getElementById('roomContainer');
+                const noResults = document.createElement('div');
+                noResults.className = 'empty-cassette';
+                noResults.innerHTML = `
+                    <div class="eject-icon">⏏</div>
+                    <h3>>_ NO MATCHING CASSETTES</h3>
+                    <p>Try a different search term</p>
+                `;
+                container.appendChild(noResults);
+            }
+        } else if (emptyState && emptyState.classList.contains('empty-cassette') && !emptyState.classList.contains('default-empty')) {
+            emptyState.remove();
+        }
+    }
+</script>
+{% endblock %}
